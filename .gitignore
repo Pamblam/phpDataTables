@@ -4,3 +4,4 @@ package-lock.json
 /.tscache/
 /config.ini
 /nbproject/private/
+phpDataTables.js.map
