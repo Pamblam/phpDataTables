@@ -9,7 +9,16 @@ interface JQuery {
 }
 
 interface phpDataTablesOpts{
-	columns?: string[]
+	columns?: string[]|any[],
+	dataquery: string,
+	processing?: boolean,
+	serverSide?: boolean,
+	ajax?: any
+}
+
+interface ajaxdata{
+	dataquery?: string
+	columns: any[]
 }
 
 ($=>{
@@ -21,11 +30,18 @@ interface phpDataTablesOpts{
 		private DataTable: object;
 		private $table: JQuery;
 		private columns: string[] = [];
-
+		private dataquery: string;
+		private opts: phpDataTablesOpts;
+		
 		constructor($ele: JQuery, opts: phpDataTablesOpts){
 			if($ele.prop("tagName") === "TABLE") this.loadColumnsFromTable($ele);
 			else if(Array.isArray(opts.columns)) this.columns = opts.columns;
 			else throw new Error("Must initiate phpDataTable on a table element OR pass in a column parameter.");
+			if(!opts.dataquery) throw new Error("Must initiate phpDataTable with a dataquery parameter.");
+			this.dataquery = opts.dataquery;
+			if(opts.columns) delete opts.columns;
+			delete opts.dataquery;
+			this.opts = opts;
 			this.buildTable($ele);
 			this.buidDataTable();
 		}
@@ -49,26 +65,30 @@ interface phpDataTablesOpts{
 		}
 		
 		private buidDataTable(){
-			this.DataTable = this.$table.DataTable({
-				processing: true,
-				serverSide: true,
-				ajax: (data, callback, settings)=>{
-					callback({
-						draw: 1,
-						recordsTotal: 3,
-						recordsFiltered: 3, 
-						data:[
-							[1,2,3],
-							[4,5,6],
-							[7,8,9]
-						]
-					});
+			var opts = (<any>Object).assign({}, this.opts);
+			opts.processing = true;
+			opts.serverSide = true;
+			opts.ajax = (data: ajaxdata, callback, settings)=>{
+				data.dataquery = this.dataquery;
+				if(this.columns.length !== data.columns.length){
+					throw new Error("Columns mismatch...");
 				}
-			});
+				for(var i=0; i<data.columns.length; i++) 
+					data.columns[i].colname = this.columns[i];
+				$.ajax({
+					url: serverSideScriptLocation,
+					data: data
+				}).done(callback);
+			};
+			this.DataTable = this.$table.DataTable(opts);
 		}
 		
 		getTable(): JQuery{
 			return this.$table;
+		}
+		
+		getDataTable(){
+			return this.DataTable;
 		}
 	}
 	

@@ -3,3 +3,4 @@
 package-lock.json
 /.tscache/
 /config.ini
+/nbproject/private/

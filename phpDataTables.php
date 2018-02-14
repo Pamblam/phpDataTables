@@ -22,3 +22,65 @@ if($config['DB_TYPE'] === "MySQL"){
 	);
 	$pdo->setAttribute(PDO::ATTR_CASE, PDO::CASE_LOWER);
 }
+
+// build the query
+$sql = $_REQUEST['dataquery'];
+$params = array();
+$where = array();
+$orderby = array();
+$gwhere = array();
+
+$q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
+$q->execute($params);
+$res = $q->fetch(PDO::FETCH_ASSOC);
+$count = intval($res['cnt']);
+
+foreach($_REQUEST['columns'] as $req){
+	if($req['searchable']){
+		if(!empty($req['search']['value'])){
+			$where[] = $req['colname']." LIKE ?";
+			$params[] = '%'.$req['search']['value'].'%';
+		}
+		if(!empty($_REQUEST['search']['value'])){
+			$gwhere[] = $req['colname']." LIKE ?";
+			$params[] = '%'.$_REQUEST['search']['value'].'%';
+		}
+	}
+}
+
+$where = implode(" and ", $where);
+$gwhere = implode(" or ", $gwhere);
+$sql = "select * from ($sql) phpdta";
+if(!empty($gwhere) || !empty($where)) $sql .= " where ";
+if(!empty($where)) $sql .= "($where) ";
+if(!empty($gwhere) && !empty($where)) $sql .= "and ";
+if(!empty($gwhere)) $sql .= "($gwhere)";
+
+$sql .= " Order by";
+foreach($_REQUEST['order'] as $o){
+	$sql .= " ".$_REQUEST['columns'][$o['column']]['colname']." ".$o['dir'];
+}
+
+$q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
+$q->execute($params);
+$res = $q->fetch(PDO::FETCH_ASSOC);
+$fcount = intval($res['cnt']);
+
+if($config['DB_TYPE'] === "MySQL"){
+	$sql .= " LIMIT ".$_REQUEST['start'].",".$_REQUEST['length'];
+}else{
+	$sql  = "select * from ($sql) phpdtb where rownum between ".$_REQUEST['start']." and ".($_REQUEST['length']+$_REQUEST['start']);
+}
+
+$q = $pdo->prepare($sql);
+$q->execute($params);
+$data = $q->fetchAll(PDO::FETCH_NUM);
+
+header("Content-Type: application/json");
+echo json_encode(array(
+	"draw" => intval($_REQUEST['draw']),
+	"recordsTotal" => $count,
+	"recordsFiltered" => $fcount,
+	"data" => $data
+));
+

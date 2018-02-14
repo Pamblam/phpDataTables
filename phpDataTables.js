@@ -9,6 +9,13 @@
                 this.columns = opts.columns;
             else
                 throw new Error("Must initiate phpDataTable on a table element OR pass in a column parameter.");
+            if (!opts.dataquery)
+                throw new Error("Must initiate phpDataTable with a dataquery parameter.");
+            this.dataquery = opts.dataquery;
+            if (opts.columns)
+                delete opts.columns;
+            delete opts.dataquery;
+            this.opts = opts;
             this.buildTable($ele);
             this.buidDataTable();
         }
@@ -29,25 +36,29 @@
             $ele.replaceWith(this.$table);
         };
         phpDataTables.prototype.buidDataTable = function () {
-            this.DataTable = this.$table.DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: function (data, callback, settings) {
-                    callback({
-                        draw: 1,
-                        recordsTotal: 3,
-                        recordsFiltered: 3,
-                        data: [
-                            [1, 2, 3],
-                            [4, 5, 6],
-                            [7, 8, 9]
-                        ]
-                    });
+            var _this = this;
+            var opts = Object.assign({}, this.opts);
+            opts.processing = true;
+            opts.serverSide = true;
+            opts.ajax = function (data, callback, settings) {
+                data.dataquery = _this.dataquery;
+                if (_this.columns.length !== data.columns.length) {
+                    throw new Error("Columns mismatch...");
                 }
-            });
+                for (var i = 0; i < data.columns.length; i++)
+                    data.columns[i].colname = _this.columns[i];
+                $.ajax({
+                    url: serverSideScriptLocation,
+                    data: data
+                }).done(callback);
+            };
+            this.DataTable = this.$table.DataTable(opts);
         };
         phpDataTables.prototype.getTable = function () {
             return this.$table;
+        };
+        phpDataTables.prototype.getDataTable = function () {
+            return this.DataTable;
         };
         return phpDataTables;
     }());
