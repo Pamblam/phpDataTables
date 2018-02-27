@@ -37,7 +37,7 @@ You need three file on your server and they *must* all be in the same directory.
 		dataquery: "SELECT `a` as `Column A`, `b` as `Column B` FROM myTable",
 	});
 
-If instantiating on a `<div>`  phpDataTables also requires a `columns` array.
+If instantiating on a `<div>`  phpDataTables also requires a `columns` array. The column names in this array must match the column names returned by the query.
 
     <div id="datatable"></div>
     

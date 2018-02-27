@@ -27,7 +27,7 @@
         };
         phpDataTables.prototype.buildTable = function ($ele) {
             var self = this;
-            this.$table = $("<table><thead><tr></tr></thead><tfoot><tr></tr></tfoot><tbody></tbody></table>");
+            this.$table = $("<div class='table-responsive'><table class='display table table-striped' width='100%' cellspacing='0'><thead><tr></tr></thead><tfoot><tr></tr></tfoot><tbody></tbody></table></div>");
             var $headers = this.$table.find("tr");
             this.columns.forEach(function (itm) { return $headers.append("<th>" + itm + "</th>"); });
             $.each($ele.prop("attributes"), function () {
@@ -52,7 +52,7 @@
                     data: data
                 }).done(callback);
             };
-            this.DataTable = this.$table.DataTable(opts);
+            this.DataTable = this.$table.find('table').DataTable(opts);
         };
         phpDataTables.prototype.getTable = function () {
             return this.$table;

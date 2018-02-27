@@ -69,12 +69,15 @@ $fcount = intval($res['cnt']);
 if($config['DB_TYPE'] === "MySQL"){
 	$sql .= " LIMIT ".$_REQUEST['start'].",".$_REQUEST['length'];
 }else{
-	$sql  = "select * from ($sql) phpdtb where rownum between ".$_REQUEST['start']." and ".($_REQUEST['length']+$_REQUEST['start']);
+	$sql  = "select * from ( select rownum rnum, phpdtb.* from ( $sql ) phpdtb where rownum <= ".($_REQUEST['length']+$_REQUEST['start'])." ) where rnum > ".$_REQUEST['start'];
 }
 
 $q = $pdo->prepare($sql);
 $q->execute($params);
 $data = $q->fetchAll(PDO::FETCH_NUM);
+
+// Remove rownum when using oracle
+if($config['DB_TYPE'] !== "MySQL") foreach($data as $k=>$v) array_shift($data[$k]);
 
 header("Content-Type: application/json");
 echo json_encode(array(
