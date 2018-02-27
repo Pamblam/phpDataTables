@@ -38,12 +38,12 @@ $count = intval($res['cnt']);
 foreach($_REQUEST['columns'] as $req){
 	if($req['searchable']){
 		if(!empty($req['search']['value'])){
-			$where[] = $req['colname']." LIKE ?";
-			$params[] = '%'.$req['search']['value'].'%';
+			$where[] = "UPPER(".$req['colname'].") LIKE ?";
+			$params[] = '%'.strtoupper($req['search']['value']).'%';
 		}
 		if(!empty($_REQUEST['search']['value'])){
-			$gwhere[] = $req['colname']." LIKE ?";
-			$params[] = '%'.$_REQUEST['search']['value'].'%';
+			$gwhere[] = "UPPER(".$req['colname'].") LIKE ?";
+			$params[] = '%'.strtoupper($_REQUEST['search']['value']).'%';
 		}
 	}
 }
