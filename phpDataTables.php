@@ -29,6 +29,7 @@ $params = array();
 $where = array();
 $orderby = array();
 $gwhere = array();
+$quote = $config['DB_TYPE'] === "MySQL" ? '`' : '"';
 
 $q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
 $q->execute($params);
@@ -38,11 +39,11 @@ $count = intval($res['cnt']);
 foreach($_REQUEST['columns'] as $req){
 	if($req['searchable']){
 		if(!empty($req['search']['value'])){
-			$where[] = "UPPER(".$req['colname'].") LIKE ?";
+			$where[] = "UPPER($quote".$req['colname']."$quote) LIKE ?";
 			$params[] = '%'.strtoupper($req['search']['value']).'%';
 		}
 		if(!empty($_REQUEST['search']['value'])){
-			$gwhere[] = "UPPER(".$req['colname'].") LIKE ?";
+			$gwhere[] = "UPPER($quote".$req['colname']."$quote) LIKE ?";
 			$params[] = '%'.strtoupper($_REQUEST['search']['value']).'%';
 		}
 	}
@@ -58,7 +59,7 @@ if(!empty($gwhere)) $sql .= "($gwhere)";
 
 $sql .= " Order by";
 foreach($_REQUEST['order'] as $o){
-	$sql .= " ".$_REQUEST['columns'][$o['column']]['colname']." ".$o['dir'];
+	$sql .= " $quote".$_REQUEST['columns'][$o['column']]['colname']."$quote ".$o['dir'];
 }
 
 $q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
