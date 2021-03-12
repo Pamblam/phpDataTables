@@ -58,8 +58,9 @@ if(!empty($gwhere) && !empty($where)) $sql .= "and ";
 if(!empty($gwhere)) $sql .= "($gwhere)";
 
 $sql .= " Order by";
-foreach($_REQUEST['order'] as $o){
+foreach($_REQUEST['order'] as $k=>$o){
 	$sql .= " $quote".$_REQUEST['columns'][$o['column']]['colname']."$quote ".$o['dir'];
+	if($k < (count($_REQUEST['order']) -1)) $sql .= ", ";
 }
 
 $q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
