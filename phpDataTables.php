@@ -57,16 +57,16 @@ if(!empty($where)) $sql .= "($where) ";
 if(!empty($gwhere) && !empty($where)) $sql .= "and ";
 if(!empty($gwhere)) $sql .= "($gwhere)";
 
+$q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
+$q->execute($params);
+$res = $q->fetch(PDO::FETCH_ASSOC);
+$fcount = intval($res['cnt']);
+
 $sql .= " Order by";
 foreach($_REQUEST['order'] as $k=>$o){
 	$sql .= " $quote".$_REQUEST['columns'][$o['column']]['colname']."$quote ".$o['dir'];
 	if($k < (count($_REQUEST['order']) -1)) $sql .= ", ";
 }
-
-$q = $pdo->prepare("select count(1) as cnt from ($sql) phpdtc");
-$q->execute($params);
-$res = $q->fetch(PDO::FETCH_ASSOC);
-$fcount = intval($res['cnt']);
 
 if($config['DB_TYPE'] === "MySQL"){
 	$sql .= " LIMIT ".$_REQUEST['start'].",".$_REQUEST['length'];
